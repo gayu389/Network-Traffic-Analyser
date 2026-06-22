@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBERNET // Network Traffic Analyzer</title>
+    <!-- Google Fonts for Modern and Cyber Look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons for clean tech icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Scanline effect for cyber aesthetic -->
+    <div class="scanlines"></div>
+    <div class="glow-overlay"></div>
+
+    <div class="dashboard-container">
+        <!-- HEADER BAR -->
+        <header class="header-bar">
+            <div class="header-left">
+                <i data-lucide="shield-alert" class="header-icon text-primary"></i>
+                <div class="title-container">
+                    <h1 class="header-title">NETWORK TRAFFIC ANALYZER</h1>
+                    <div class="live-status">
+                        <span class="live-dot"></span>
+                        <span class="live-text">LIVE FEED</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="status-badge-container">
+                    <span class="status-label">SYSTEM STATE:</span>
+                    <span class="status-badge" id="system-status">MONITORING</span>
+                </div>
+                <div class="time-container">
+                    <i data-lucide="clock" class="time-icon"></i>
+                    <span id="timestamp" class="monospace-text">2026-06-22 10:33:53</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- METRICS ROW -->
+        <section class="metrics-grid">
+            <!-- Card 1 -->
+            <div class="metric-card" id="card-packets">
+                <div class="metric-header">
+                    <span class="metric-label">TOTAL PACKETS CAPTURED</span>
+                    <i data-lucide="activity" class="metric-icon text-primary"></i>
+                </div>
+                <div class="metric-value monospace-text" id="metric-total-packets">48,291</div>
+                <div class="metric-footer">
+                    <span class="metric-trend text-primary">⚡ Live updating</span>
+                    <span class="metric-detail" id="metric-packet-rate">+45 p/s</span>
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="metric-card" id="card-connections">
+                <div class="metric-header">
+                    <span class="metric-label">ACTIVE CONNECTIONS</span>
+                    <i data-lucide="radio" class="metric-icon text-secondary"></i>
+                </div>
+                <div class="metric-value monospace-text" id="metric-active-connections">14</div>
+                <div class="metric-footer">
+                    <span class="metric-trend text-secondary">⚡ Socket tracking</span>
+                    <span class="metric-detail" id="metric-conn-change">Stable</span>
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="metric-card" id="card-interfaces">
+                <div class="metric-header">
+                    <span class="metric-label">INTERFACES FOUND</span>
+                    <i data-lucide="network" class="metric-icon text-warning"></i>
+                </div>
+                <div class="metric-value monospace-text" id="metric-interfaces-count">3</div>
+                <div class="metric-footer">
+                    <span class="metric-trend text-warning">✔ Network Adapters</span>
+                    <span class="metric-detail">eth0, lo, wlan0</span>
+                </div>
+            </div>
+            <!-- Card 4 -->
+            <div class="metric-card" id="card-data">
+                <div class="metric-header">
+                    <span class="metric-label">DATA TRANSFERRED</span>
+                    <i data-lucide="hard-drive-upload" class="metric-icon text-secondary"></i>
+                </div>
+                <div class="metric-value monospace-text" id="metric-data-transferred">2.4 MB</div>
+                <div class="metric-footer">
+                    <span class="metric-trend text-secondary">⚡ Bandwidth</span>
+                    <span class="metric-detail" id="metric-bandwidth-rate">12 KB/s</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN LAYOUT GRID -->
+        <main class="main-dashboard-grid">
+            <!-- PANEL 1: Live Packet Feed -->
+            <section class="panel live-feed-panel">
+                <div class="panel-header">
+                    <div class="panel-header-left">
+                        <i data-lucide="terminal" class="panel-icon text-primary"></i>
+                        <h2 class="panel-title">LIVE PACKET STREAM</h2>
+                    </div>
+                    <div class="feed-controls">
+                        <button class="control-btn active" id="btn-pause-feed" title="Pause Feed">
+                            <i data-lucide="pause"></i>
+                        </button>
+                        <button class="control-btn" id="btn-clear-feed" title="Clear Stream">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-body table-container" id="packet-feed-container">
+                    <table class="cyber-table" id="packet-feed-table">
+                        <thead>
+                            <tr>
+                                <th>TIME</th>
+                                <th>SOURCE IP</th>
+                                <th>DESTINATION IP</th>
+                                <th>PROTO</th>
+                                <th>PORT</th>
+                                <th>SIZE (B)</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="packet-feed-body">
+                            <!-- Rows dynamically populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- RIGHT COLUMN PANELS (Interfaces & Protocol Distribution) -->
+            <div class="right-column-grid">
+                <!-- PANEL 2: Network Interfaces -->
+                <section class="panel interfaces-panel">
+                    <div class="panel-header">
+                        <i data-lucide="cpu" class="panel-icon text-secondary"></i>
+                        <h2 class="panel-title">NETWORK INTERFACES</h2>
+                    </div>
+                    <div class="panel-body interfaces-list" id="interfaces-list-container">
+                        <!-- Interface cards dynamically loaded and updated -->
+                        <div class="interface-item">
+                            <div class="interface-info">
+                                <div class="interface-meta">
+                                    <i data-lucide="cable" class="intf-icon text-primary"></i>
+                                    <div>
+                                        <div class="intf-name monospace-text">eth0</div>
+                                        <div class="intf-type">Ethernet Adapter</div>
+                                    </div>
+                                </div>
+                                <div class="intf-addresses monospace-text">
+                                    <span class="intf-ip">IP: 192.168.1.5</span>
+                                    <span class="intf-mac">MAC: A4:C3:F0:12:88:2B</span>
+                                </div>
+                            </div>
+                            <span class="badge badge-up">UP</span>
+                        </div>
+                        <div class="interface-item">
+                            <div class="interface-info">
+                                <div class="interface-meta">
+                                    <i data-lucide="refresh-cw" class="intf-icon text-secondary"></i>
+                                    <div>
+                                        <div class="intf-name monospace-text">lo</div>
+                                        <div class="intf-type">Loopback Interface</div>
+                                    </div>
+                                </div>
+                                <div class="intf-addresses monospace-text">
+                                    <span class="intf-ip">IP: 127.0.0.1</span>
+                                    <span class="intf-mac">MAC: 00:00:00:00:00:00</span>
+                                </div>
+                            </div>
+                            <span class="badge badge-up">UP</span>
+                        </div>
+                        <div class="interface-item">
+                            <div class="interface-info">
+                                <div class="interface-meta">
+                                    <i data-lucide="wifi" class="intf-icon text-warning"></i>
+                                    <div>
+                                        <div class="intf-name monospace-text">wlan0</div>
+                                        <div class="intf-type">Wireless Adapter</div>
+                                    </div>
+                                </div>
+                                <div class="intf-addresses monospace-text">
+                                    <span class="intf-ip">IP: 192.168.1.8</span>
+                                    <span class="intf-mac">MAC: A4:C3:F0:12:88:2C</span>
+                                </div>
+                            </div>
+                            <span class="badge badge-down">DOWN</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL 3: Protocol Distribution -->
+                <section class="panel protocol-panel">
+                    <div class="panel-header">
+                        <i data-lucide="pie-chart" class="panel-icon text-primary"></i>
+                        <h2 class="panel-title">PROTOCOL DISTRIBUTION</h2>
+                    </div>
+                    <div class="panel-body chart-panel-body">
+                        <div class="chart-wrapper">
+                            <canvas id="protocolChart"></canvas>
+                        </div>
+                        <div class="legend-grid" id="chart-legend-grid">
+                            <!-- Custom chart legends with color keys and stats -->
+                            <div class="legend-item">
+                                <span class="legend-color-dot" style="background: #00ff88;"></span>
+                                <span class="legend-label">TCP</span>
+                                <span class="legend-val monospace-text" id="legend-tcp-val">58%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color-dot" style="background: #00cfff;"></span>
+                                <span class="legend-label">UDP</span>
+                                <span class="legend-val monospace-text" id="legend-udp-val">27%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color-dot" style="background: #ffaa00;"></span>
+                                <span class="legend-label">ICMP</span>
+                                <span class="legend-val monospace-text" id="legend-icmp-val">10%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color-dot" style="background: #6c7a9c;"></span>
+                                <span class="legend-label">Other</span>
+                                <span class="legend-val monospace-text" id="legend-other-val">5%</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- PANEL 4: TCP/IP Connection Details (Full Width) -->
+        <footer class="panel connections-panel">
+            <div class="panel-header">
+                <i data-lucide="lan" class="panel-icon text-secondary"></i>
+                <h2 class="panel-title">TCP/IP ACTIVE SOCKET CONNECTIONS</h2>
+            </div>
+            <div class="panel-body table-container">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>LOCAL ADDRESS</th>
+                            <th>LOCAL PORT</th>
+                            <th>REMOTE ADDRESS</th>
+                            <th>REMOTE PORT</th>
+                            <th>STATE</th>
+                            <th>DURATION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="connections-table-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Initialize Lucide icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
